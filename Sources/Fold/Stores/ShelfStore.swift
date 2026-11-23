@@ -114,6 +114,16 @@ final class ShelfStore: ObservableObject {
         selection = cards[min(max(0, index + delta), cards.count - 1)].id
     }
 
+    func delete(_ clip: Clip) {
+        let cards = visible
+        let wasSelected = selected?.id == clip.id
+        change { $0.clips.removeAll { $0.id == clip.id } }
+        guard wasSelected, !history.clips.contains(where: { $0.id == clip.id }),
+              let index = cards.firstIndex(where: { $0.id == clip.id }) else { return }
+        let remaining = visible
+        selection = remaining.isEmpty ? nil : remaining[min(index, remaining.count - 1)].id
+    }
+
     func message(_ text: String) {
         let id = UUID()
         noticeID = id

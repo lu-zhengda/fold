@@ -32,6 +32,7 @@ The script builds and opens `dist/Fold.app`. You can open the bundle directly on
 - Start typing to search, or press **Command–F**. Press **Space** on a selected card for a larger preview. Search matches previews, source app names, and content types. Use **←** and **→** to move between cards when the search field is inactive.
 - Double-click a card or press **Return** to put it back on the clipboard and return to the previous app. Press **Command–V** there to paste.
 - **Command–C** copies the selected card and closes the shelf, including when automatic insertion is enabled.
+- Press **Delete (⌫)** or click the trash button to remove the selected clip from history and its pinboards. For file and folder clips, the originals stay in Finder.
 - For one-step pasting, choose **••• → Enable Automatic Insertion** and grant Fold Accessibility access in System Settings. Fold will send Command–V to the previous app when you choose a clip.
 - Right-click a card and choose **Pinboards** to save it to Favorites or another board. Choose **••• → New Pinboard** to create a board. Use the pinboard tabs above the cards to switch boards.
 - Press **Escape** to clear a search or close the shelf. Use the **•••** menu to pause capture, clear unpinned history, or quit.

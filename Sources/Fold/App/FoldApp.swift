@@ -234,6 +234,9 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
             return event
         }
         switch Int(event.keyCode) {
+        case kVK_Delete, kVK_ForwardDelete:
+            guard !editing, modifiers.subtracting(.capsLock).isEmpty else { return event }
+            if !event.isARepeat, let clip = store.selected { store.delete(clip) }
         case kVK_Space where !editing && !store.searching:
             store.previewID = store.selected?.id
         case kVK_Escape:

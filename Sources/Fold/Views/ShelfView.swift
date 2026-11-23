@@ -78,6 +78,13 @@ struct ShelfView: View {
                     Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
                         .help(store.captureDenied ? "Pasteboard access denied" : store.paused ? "Capture paused" : "Shortcut unavailable")
                 }
+                Button {
+                    if let clip = store.selected { store.delete(clip) }
+                } label: {
+                    Image(systemName: "trash").frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain).disabled(clips.isEmpty)
+                .accessibilityLabel("Delete selected clip").help("Delete selected clip (⌫)")
                 options
             }
             HStack(spacing: 7) {
@@ -201,7 +208,7 @@ struct ShelfView: View {
                                         }
                                     }
                                     Divider()
-                                    Button("Delete Clip", role: .destructive) { store.change { $0.clips.removeAll { $0.id == clip.id } } }
+                                    Button("Delete Clip", role: .destructive) { store.delete(clip) }
                                 }
                         }
                     }.padding(.horizontal, ShelfLayout.margin).frame(width: width, alignment: .leading).id(index)

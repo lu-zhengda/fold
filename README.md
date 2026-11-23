@@ -10,6 +10,8 @@ Install through Homebrew:
 brew install --cask lu-zhengda/tap/fold
 ```
 
+If Homebrew asks you to trust this cask, run `brew trust --cask lu-zhengda/tap/fold` and repeat the install command.
+
 Or download the disk image from [GitHub Releases](https://github.com/lu-zhengda/fold/releases/latest), open it, and drag Fold into Applications. The universal app runs on Apple silicon and Intel Macs with macOS 14 or later.
 
 ## Build from source

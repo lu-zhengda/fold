@@ -1,11 +1,30 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   test:
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - run: swift test
-      - run: swift build --configuration release
+        with:
+          persist-credentials: false
+      - name: Test, package, verify the disk image, and launch Fold
+        run: ./script/verify.sh --launch
+      - name: Upload Swift test coverage
+        if: ${{ !cancelled() && hashFiles('.build/verification/coverage.json') != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: swift-coverage
+          path: .build/verification/coverage.json
+          include-hidden-files: true
+          if-no-files-found: error

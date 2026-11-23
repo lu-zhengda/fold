@@ -1,0 +1,39 @@
+name: Verify published Fold
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Published version (leave blank for latest)'
+        type: string
+      install_cask:
+        description: 'Install and launch the current Homebrew cask'
+        type: boolean
+        default: true
+  schedule:
+    - cron: '34 12 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: ${{ github.event_name != 'release' || !github.event.release.prerelease }}
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify downloaded release and selected installation path
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.event.release.tag_name || inputs.version }}
+          INSTALL_CASK: ${{ github.event_name == 'schedule' || inputs.install_cask }}
+        run: |
+          args=()
+          if [[ "$INSTALL_CASK" == true ]]; then args+=(--install-cask); fi
+          if [[ -n "$VERSION" ]]; then args+=("$VERSION"); fi
+          ./script/verify-release.sh "${args[@]}"

@@ -44,12 +44,27 @@ History lives in `~/Library/Application Support/Fold/`. Fold keeps up to 500 unp
 
 ## Verify
 
+Run the same source checks as CI on a Mac with Xcode installed.
+
 ```sh
-swift test
-./script/build_and_run.sh --verify
+./script/verify.sh
 ```
 
-Tests use temporary storage and private pasteboards.
+The harness runs the Swift tests with coverage, builds a universal app using the release packaging code, and mounts the resulting DMG to check the app, signature, deployment targets, and Applications shortcut. CI also launches and quits the packaged app in a disposable GUI session and uploads `.build/verification/coverage.json`. To include that launch locally, use `./script/verify.sh --launch`. The app reads the clipboard while running.
+
+To verify a published release, use a Mac with Xcode, GitHub CLI, and jq.
+
+```sh
+./script/verify-release.sh v1.0.0
+```
+
+Omit the version for the latest stable release. This downloads the public assets, checks the SHA-256, applies download quarantine, and checks both the image and embedded app against Fold’s Developer ID team, notarization tickets, and Gatekeeper. Each published stable release triggers this check.
+
+After updating the tap, run **Actions → Verify published Fold → Run workflow** with the Homebrew option enabled. This also runs weekly for the latest release. The runner checks the current cask’s version, URL, digest, and app-only installation, installs it, and launches the installed app. To reproduce that installation on a disposable Mac, run `./script/verify-release.sh --install-cask`. It installs Fold in Applications and leaves the Homebrew receipt available for inspection.
+
+### Finder keyboard check
+
+In Finder, copy a test folder containing a small file, then copy a different item. Open an empty destination folder. Press **Control–Option–V**, select the earlier folder with the arrow keys, press **Return**, and press **Command–V** in Finder. Open the resulting folder and verify the file contents. Repeat after relaunching Fold to exercise the saved file grant. An accessible folder should restore immediately. For a folder that requires permission, cancelling the picker should preserve the clipboard. This interactive check complements the automated file-reference tests.
 
 ## Release builds
 

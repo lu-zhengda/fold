@@ -13,20 +13,8 @@ mkdir -p "$out"
 work=$(mktemp -d "$out/.release.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 app="$work/image/Fold.app"
-mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
-bins=()
-for arch in arm64 x86_64; do
-    args=(--scratch-path ".build/release-$arch" --configuration release --triple "$arch-apple-macosx14.0")
-    swift build "${args[@]}" --product Fold
-    bins+=("$(swift build "${args[@]}" --show-bin-path)/Fold")
-done
-lipo -create "${bins[@]}" -output "$app/Contents/MacOS/Fold"
-strip -S "$app/Contents/MacOS/Fold"
-for arch in arm64 x86_64; do
-    lipo "$app/Contents/MacOS/Fold" -verify_arch "$arch"
-done
-cp Resources/Info.plist "$app/Contents/"
-cp Resources/Fold.icns "$app/Contents/Resources/"
+source script/package.sh
+build_bundle "$app"
 codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$app"
 codesign --verify --deep --strict "$app"
 
@@ -48,9 +36,8 @@ notarize() {
 ditto -c -k --keepParent "$app" "$work/Fold.zip"
 notarize "$work/Fold.zip" "$app"
 spctl --assess --type execute --verbose "$app"
-ln -s /Applications "$work/image/Applications"
 image="Fold-$version.dmg"
-hdiutil create -volname Fold -srcfolder "$work/image" -fs HFS+ -format UDZO "$work/$image"
+create_image "$work/image" "$work/$image"
 codesign --timestamp --sign "$SIGNING_IDENTITY" "$work/$image"
 notarize "$work/$image" "$work/$image"
 spctl --assess --type open --context context:primary-signature --verbose "$work/$image"

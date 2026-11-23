@@ -16,13 +16,15 @@ app="$work/image/Fold.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 bins=()
 for arch in arm64 x86_64; do
-    args=(--configuration release --triple "$arch-apple-macosx14.0")
+    args=(--scratch-path ".build/release-$arch" --configuration release --triple "$arch-apple-macosx14.0")
     swift build "${args[@]}" --product Fold
     bins+=("$(swift build "${args[@]}" --show-bin-path)/Fold")
 done
 lipo -create "${bins[@]}" -output "$app/Contents/MacOS/Fold"
 strip -S "$app/Contents/MacOS/Fold"
-lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/Fold"
+for arch in arm64 x86_64; do
+    lipo "$app/Contents/MacOS/Fold" -verify_arch "$arch"
+done
 cp Resources/Info.plist "$app/Contents/"
 cp Resources/Fold.icns "$app/Contents/Resources/"
 codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$app"

@@ -44,6 +44,6 @@ if $install; then
     brew install --cask --appdir=/Applications "$cask"
     brew list --cask --versions fold | grep -Fx "fold $version"
     script/verify-bundle.sh /Applications/Fold.app "$version" --distribution
-    swift script/launch-smoke.swift /Applications/Fold.app
+    swift script/launch-smoke.swift /Applications/Fold.app --executable
     echo "PASS Homebrew install and app launch"
 fi

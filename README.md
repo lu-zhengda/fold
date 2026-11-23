@@ -60,7 +60,7 @@ To verify a published release, use a Mac with Xcode, GitHub CLI, and jq.
 
 Omit the version for the latest stable release. This downloads the public assets, checks the SHA-256, applies download quarantine, and checks both the image and embedded app against Fold’s Developer ID team, notarization tickets, and Gatekeeper. Each published stable release triggers this check.
 
-After updating the tap, run **Actions → Verify published Fold → Run workflow** with the Homebrew option enabled. This also runs weekly for the latest release. The runner checks the current cask’s version, URL, digest, and app-only installation, installs it, and launches the installed app. To reproduce that installation on a disposable Mac, run `./script/verify-release.sh --install-cask`. It installs Fold in Applications and leaves the Homebrew receipt available for inspection.
+After updating the tap, run **Actions → Verify published Fold → Run workflow** with the Homebrew option enabled. This also runs weekly for the latest release. The runner checks the current cask’s version, URL, digest, and app-only installation, installs it, and starts the installed executable to verify that it registers as a menu bar app. On a desktop Mac, open Fold from Applications to verify the first-launch experience in Finder. To reproduce that installation on a disposable Mac, run `./script/verify-release.sh --install-cask`. It installs Fold in Applications and leaves the Homebrew receipt available for inspection.
 
 ### Finder keyboard check
 

@@ -20,7 +20,7 @@ build_bundle() {
     mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
     local bins=() args=() arch
     for arch in arm64 x86_64; do
-        args=(--scratch-path ".build/release-$arch" --configuration release --triple "$arch-apple-macosx14.0")
+        args=(--scratch-path ".build/release-$arch" --configuration release --triple "$arch-apple-macosx26.0")
         swift build "${args[@]}" --product Fold
         bins+=("$(swift build "${args[@]}" --show-bin-path)/Fold")
     done

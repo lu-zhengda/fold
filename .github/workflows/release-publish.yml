@@ -311,7 +311,8 @@ jobs:
             echo "$cask url no longer matches Fold-<version>.dmg; update the cask by hand"
             exit 1
           fi
-          perl -pi -e 's/^  version ".*"$/  version "$ENV{VERSION}"/; s/^  sha256 ".*"$/  sha256 "$ENV{SHA256}"/' "$cask"
+          perl -pi -e 's/^  version ".*"$/  version "$ENV{VERSION}"/; s/^  sha256 ".*"$/  sha256 "$ENV{SHA256}"/; s/^  depends_on macos: :sonoma$/  depends_on macos: :tahoe/' "$cask"
+          grep -Fqx '  depends_on macos: :tahoe' "$cask"
           grep -Fqx "  version \"$VERSION\"" "$cask"
           grep -Fqx "  sha256 \"$SHA256\"" "$cask"
           if command -v ruby >/dev/null; then ruby -c "$cask"; fi

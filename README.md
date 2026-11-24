@@ -1,6 +1,11 @@
 # Fold
 
-Fold is a local clipboard manager for macOS 14 or later. It runs in the menu bar and opens a horizontal shelf along the bottom of your screen. Clipboard history stays on your Mac. Update checks contact GitHub.
+[![CI](https://github.com/lu-zhengda/fold/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/lu-zhengda/fold/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/lu-zhengda/fold?sort=semver)](https://github.com/lu-zhengda/fold/releases/latest)
+[![Swift tools 5.10](https://img.shields.io/badge/Swift_tools-5.10-orange.svg)](https://github.com/lu-zhengda/fold/blob/main/Package.swift)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lu-zhengda/fold/blob/main/LICENSE)
+
+Fold is a local clipboard manager for macOS 26 and 27. It runs in the menu bar and opens a split view with clipboard history on the left and a preview on the right. Clipboard history stays on your Mac. Update checks contact GitHub.
 
 ## Install
 
@@ -12,11 +17,11 @@ brew install --cask lu-zhengda/tap/fold
 
 If Homebrew asks you to trust this cask, run `brew trust --cask lu-zhengda/tap/fold` and repeat the install command. To upgrade through Homebrew, run `brew upgrade --cask --greedy lu-zhengda/tap/fold`.
 
-Or download the disk image from [GitHub Releases](https://github.com/lu-zhengda/fold/releases/latest), open it, and drag Fold into Applications. The universal app runs on Apple silicon and Intel Macs with macOS 14 or later.
+Or download the disk image from [GitHub Releases](https://github.com/lu-zhengda/fold/releases/latest), open it, and drag Fold into Applications. The download includes Apple silicon and Intel builds. Fold supports the two most recent major versions of macOS.
 
 ## Build from source
 
-With Xcode 16.3 or later installed, run the build script.
+With Xcode 26 or later installed, run the build script.
 
 ```sh
 ./script/build_and_run.sh
@@ -28,13 +33,13 @@ The script builds and opens `dist/Fold.app`. You can open the bundle directly on
 
 - Copy something while Fold is running. On macOS versions that ask about pasteboard access, allow Fold to read the clipboard for continuous capture.
 - Press **Control–Option–V** or click the stack icon in the menu bar to open the shelf.
-- Use the page arrows beside the item range or swipe horizontally to browse older clips.
-- Start typing to search, or press **Command–F**. Press **Space** on a selected card for a larger preview. Search matches previews, source app names, and content types. Use **←** and **→** to move between cards when the search field is inactive.
-- Double-click a card or press **Return** to put it back on the clipboard and return to the previous app. Press **Command–V** there to paste.
-- **Command–C** copies the selected card and closes the shelf, including when automatic insertion is enabled.
+- Use **↑** and **↓** or scroll through the history list. The preview follows your selection.
+- Start typing to search, or press **Command–F**. Press **Space** on a selected clip for a larger preview. Search matches previews, source app names, and content types. Use **↑** and **↓** to browse search results.
+- Double-click a clip or press **Return** to put it back on the clipboard and return to the previous app. Press **Command–V** there to paste.
+- **Command–C** copies the selected clip and closes the shelf, including when automatic insertion is enabled.
 - Press **Delete (⌫)** or click the trash button to remove the selected clip from history and its pinboards. For file and folder clips, the originals stay in Finder.
 - For one-step pasting, choose **••• → Enable Automatic Insertion** and grant Fold Accessibility access in System Settings. Fold will send Command–V to the previous app when you choose a clip.
-- Right-click a card and choose **Pinboards** to save it to Favorites or another board. Choose **••• → New Pinboard** to create a board. Use the pinboard tabs above the cards to switch boards.
+- Right-click a clip and choose **Pinboards** to save it to Favorites or another board. Choose **••• → New Pinboard** to create a board. Use the **History** menu to switch boards.
 - Press **Escape** to clear a search or close the shelf. Use the **•••** menu to pause capture, clear unpinned history, or quit.
 
 ## Settings

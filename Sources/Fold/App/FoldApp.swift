@@ -48,7 +48,7 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
-        panel.contentView = NSHostingView(rootView: ShelfView(
+        panel.contentView = NSHostingView(rootView: HistorySplitView(
             store: store, use: { [weak self] in self?.use($0) },
             copy: { [weak self] in self?.copyClip($0) },
             dismiss: { [weak self] in self?.hide() },
@@ -146,10 +146,11 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         store.capture()
         let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
         guard let bounds = screen?.visibleFrame else { return }
-        let width = bounds.width - 16
-        panel.setFrame(NSRect(x: bounds.midX - width / 2, y: bounds.minY + 8, width: width, height: ShelfLayout.cardSize(width) + 78), display: true)
+        let width = min(860, bounds.width - 24)
+        let height = min(475, bounds.height - 24)
+        panel.setFrame(NSRect(x: bounds.midX - width / 2, y: bounds.midY - height / 2,
+                              width: width, height: height), display: true)
         store.previewID = nil
-        store.searching = false
         store.query = ""
         store.selection = nil
         store.openCount += 1
@@ -250,7 +251,6 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         }
         if modifiers == .command, event.charactersIgnoringModifiers?.lowercased() == "f" {
             store.previewID = nil
-            store.searching = true
             store.searchFocusRequest += 1
             return nil
         }
@@ -266,20 +266,21 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         case kVK_Delete, kVK_ForwardDelete:
             guard !editing, modifiers.subtracting(.capsLock).isEmpty else { return event }
             if !event.isARepeat, let clip = store.selected { store.delete(clip) }
-        case kVK_Space where !editing && !store.searching:
+        case kVK_Space where !editing:
             store.previewID = store.selected?.id
         case kVK_Escape:
             if !store.query.isEmpty { store.query = "" }
-            else if store.searching { store.searching = false }
+            else if editing { panel.makeFirstResponder(nil) }
             else { hide() }
+        case kVK_UpArrow: store.move(-1)
         case kVK_LeftArrow where !editing: store.move(-1)
+        case kVK_DownArrow: store.move(1)
         case kVK_RightArrow where !editing: store.move(1)
         case kVK_Return where !editing, kVK_ANSI_KeypadEnter where !editing:
             if let clip = store.selected { use(clip) }
         default:
             guard !editing, let characters = event.characters, !characters.isEmpty,
                   characters.unicodeScalars.allSatisfy({ !CharacterSet.controlCharacters.contains($0) && !(0xF700...0xF8FF).contains($0.value) }) else { return event }
-            store.searching = true
             store.searchFocusRequest += 1
             store.query += characters
         }

@@ -20,6 +20,9 @@ final class ShelfStore: ObservableObject {
         }
     }
     private var library: Library?
+    /// Set only for `--library-folder`. Lets the smoke check capture even if
+    /// the developer has paused capture, without writing that preference.
+    private var smokeLibrary: URL?
     private var lastChange = NSPasteboard.general.changeCount
     private var timer: Timer?
     private var noticeID = UUID()
@@ -34,8 +37,16 @@ final class ShelfStore: ObservableObject {
 
     func start() {
         do {
-            let root = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            library = try Library(folder: root.appendingPathComponent("Fold", isDirectory: true))
+            let arguments = CommandLine.arguments
+            let folder: URL
+            if let override = LibraryLocation.overrideFolder(arguments: arguments) {
+                smokeLibrary = override
+                folder = override
+            } else {
+                let root = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                folder = LibraryLocation.folder(arguments: arguments, applicationSupport: root)
+            }
+            library = try Library(folder: folder)
             history = library!.history
         } catch { notice = "Couldn’t open local history. \(error.localizedDescription)"; return }
         let timer = Timer(timeInterval: 0.45, repeats: true) { [weak self] _ in
@@ -50,13 +61,41 @@ final class ShelfStore: ObservableObject {
         guard board.changeCount != lastChange else { return }
         lastChange = board.changeCount
         captureDenied = board.accessBehavior == .alwaysDeny
-        if captureDenied { return }
-        guard !paused, let library, let payload = Clipboard.read(board) else { return }
+        if captureDenied {
+            noteCapture("denied")
+            return
+        }
+        // A smoke launch must still record copies when the developer has paused capture.
+        guard smokeLibrary != nil || !paused, let library else { return }
+        guard let payload = Clipboard.read(board) else {
+            noteCapture("unreadable")
+            return
+        }
         do {
             let app = NSWorkspace.shared.frontmostApplication
             try library.record(payload, source: app?.localizedName ?? "Clipboard", sourceBundleID: app?.bundleIdentifier)
             history = library.history
-        } catch { message("Couldn’t save this clip. \(error.localizedDescription)") }
+            noteCapture("recorded")
+        } catch {
+            noteCapture("save-failed")
+            message("Couldn’t save this clip. \(error.localizedDescription)")
+        }
+    }
+
+    /// Writes a one-line capture result next to the temporary history index.
+    /// No-op unless `--library-folder` was passed.
+    private func noteCapture(_ status: String) {
+        guard let smokeLibrary else { return }
+        let behavior: String
+        switch NSPasteboard.general.accessBehavior {
+        case .default: behavior = "default"
+        case .ask: behavior = "ask"
+        case .alwaysAllow: behavior = "alwaysAllow"
+        case .alwaysDeny: behavior = "alwaysDeny"
+        @unknown default: behavior = "unknown"
+        }
+        let line = status + " " + behavior + "\n"
+        try? Data(line.utf8).write(to: smokeLibrary.appendingPathComponent("capture-status.txt"), options: .atomic)
     }
 
     func previewPayload(_ clip: Clip) -> Payload? {

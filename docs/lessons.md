@@ -6,6 +6,10 @@ Each entry: **date** — what happened — what changed (or what we learned).
 
 ## 2026-11-24
 
+**CI launch smoke now checks clipboard capture, not only that the process starts.** `ShelfStore` samples `NSPasteboard.general.changeCount` on a 0.45 second timer and stores one entry per payload digest, newest first; copying the same payload again moves that entry to the front. `./script/verify.sh --launch` writes three distinct strings (plain text, a URL, and a multi-line string) to the general pasteboard and reads `History.plist` from a temporary `--library-folder`. The folder override and `capture-status.txt` exist only when that argument is set. The check polls for up to 15 seconds per item and fails the `test` job with the expected and actual previews. `launch-smoke.swift --self-test` rejects a snapshot that is missing an item, so the failure path stays covered without leaving a broken expectation in the branch. UI scripting is not used; GitHub-hosted runners cannot grant Accessibility.
+
+## 2026-11-24
+
 **Release on merge replaces signing from a dev Mac.** `release-on-merge.yml` plans the tag from exactly one `semver:*` label (`script/plan-release.sh`, tested in CI by `script/test-plan-release.sh`), and `release-publish.yml` signs, notarizes, publishes, bumps `Casks/fold.rb`, and installs the cask on a clean runner. What we learned while wiring it:
 
 - A release created with `GITHUB_TOKEN` does not fire `release: published`. Verification has to be a job in the release workflow; `verify-release.yml` is now manual only.

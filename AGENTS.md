@@ -32,6 +32,18 @@ CI-equivalent local check (tests with coverage, ad-hoc signed universal app, DMG
 
 `script/verify.sh` also syntax-checks `script/*.sh`, runs `script/test-plan-release.sh` (release tag planning against a throwaway git repo), stamps the bundle version with `stamp_version`, writes `.build/verification/coverage.json`, and runs `script/verify-image.sh` on a disposable DMG.
 
+## Clipboard history behavior check
+
+`./script/verify.sh --launch` is the local command, and it is what the CI `test` job runs. After the app is up, the launch smoke copies three strings onto the system pasteboard: plain text, one `https` URL, and one multi-line string. It polls up to 15 seconds per copy and expects them in clipboard history newest-first. Copying the first string again must move that entry to the front and must not add a fourth row. `ShelfStore` polls `NSPasteboard.general.changeCount` every 0.45 seconds, and `Library.record` deduplicates by payload digest.
+
+The smoke launch passes `--library-folder` with a directory created under the `mktemp` workspace (`$TMPDIR`). When that argument is present, Fold writes `History.plist` and a one-line `capture-status.txt` there. A normal launch keeps using Application Support. The script terminates the app on the way out, and `verify.sh` traps exit and signals so a failed run still kills the process id it recorded and deletes the temporary workspace. Checker-only (no app launch):
+
+```sh
+swift script/launch-smoke.swift --self-test
+```
+
+That command feeds the order checker a snapshot that is missing an item and exits successfully only if the checker rejects it.
+
 Quick dev loop:
 
 ```sh

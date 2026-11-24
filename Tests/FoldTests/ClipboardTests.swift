@@ -2,6 +2,14 @@ import XCTest
 import AppKit
 @testable import Fold
 
+private struct SmokeHistoryClip: Decodable {
+    let preview: String
+}
+
+private struct SmokeHistoryFile: Decodable {
+    let clips: [SmokeHistoryClip]
+}
+
 final class ClipboardTests: XCTestCase {
     private func withPasteboard(_ test: (NSPasteboard) throws -> Void) rethrows {
         let board = NSPasteboard.withUniqueName()
@@ -144,6 +152,28 @@ final class ClipboardTests: XCTestCase {
             XCTAssertTrue(Clipboard.write(Payload(items: [["public.png": Data(count: Clipboard.byteLimit + 1)]]), to: board))
             XCTAssertNil(Clipboard.read(board))
         }
+    }
+
+    func testNewestFirstOrderAndDuplicateMovesExistingEntry() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let library = try Library(folder: folder)
+        func payload(_ text: String) -> Payload {
+            Payload(items: [["public.utf8-plain-text": Data(text.utf8)]])
+        }
+        let plain = "fold-smoke-alpha"
+        let link = "https://example.com/fold-smoke"
+        let lines = "fold-smoke-line-1\nfold-smoke-line-2"
+        try library.record(payload(plain), source: "Test")
+        try library.record(payload(link), source: "Test")
+        try library.record(payload(lines), source: "Test")
+        XCTAssertEqual(library.history.clips.map(\.preview), [lines, link, plain])
+        try library.record(payload(plain), source: "Test")
+        XCTAssertEqual(library.history.clips.count, 3)
+        XCTAssertEqual(library.history.clips.map(\.preview), [plain, lines, link])
+        let index = try Data(contentsOf: folder.appendingPathComponent("History.plist"))
+        let stored = try PropertyListDecoder().decode(SmokeHistoryFile.self, from: index)
+        XCTAssertEqual(stored.clips.map(\.preview), [plain, lines, link])
     }
 
     func testPersistenceDeduplicationSearchAndRemoval() throws {

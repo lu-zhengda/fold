@@ -1,8 +1,10 @@
 name: Verify published Fold
 
+# Manual re-verification of a published release. Releases are created by
+# release-publish.yml with GITHUB_TOKEN, which does not trigger
+# `release: published`; that workflow runs the same script in its
+# verify-published-release job.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       version:
@@ -22,9 +24,8 @@ permissions:
 
 jobs:
   verify:
-    if: ${{ github.event_name != 'release' || !github.event.release.prerelease }}
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -32,10 +33,11 @@ jobs:
       - name: Verify downloaded release and selected installation path
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ github.event.release.tag_name || inputs.version }}
-          INSTALL_CASK: ${{ github.event_name == 'workflow_dispatch' && inputs.install_cask }}
+          VERSION: ${{ inputs.version }}
+          INSTALL_CASK: ${{ inputs.install_cask }}
         run: |
+          set -euo pipefail
           args=()
           if [[ "$INSTALL_CASK" == true ]]; then args+=(--install-cask); fi
           if [[ -n "$VERSION" ]]; then args+=("$VERSION"); fi
-          ./script/verify-release.sh "${args[@]}"
+          ./script/verify-release.sh ${args[@]+"${args[@]}"}

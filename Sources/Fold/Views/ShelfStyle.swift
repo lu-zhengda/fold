@@ -22,6 +22,7 @@ extension ClipKind {
 
 extension Clip {
     var listTitle: String {
+        if let customName { return customName }
         if kind == .link && !detail.isEmpty { return detail }
         return preview.split(whereSeparator: \.isNewline).first.map { String($0.prefix(160)) } ?? kind.title
     }

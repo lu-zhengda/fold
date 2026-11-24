@@ -157,6 +157,12 @@ jobs:
           unset NOTARY_PROFILE
           ASC_KEY_ID=$(printf '%s' "$APPSTORE_API_KEY_ID" | tr -d '[:space:]')
           ASC_ISSUER_ID=$(printf '%s' "$APPSTORE_API_ISSUER_ID" | tr -d '[:space:]')
+          if [[ -z "$ASC_KEY_ID" || -z "$ASC_ISSUER_ID" ]]; then
+            echo "APPSTORE_API_KEY_ID and APPSTORE_API_ISSUER_ID must be set"
+            exit 1
+          fi
+          echo "::add-mask::$ASC_KEY_ID"
+          echo "::add-mask::$ASC_ISSUER_ID"
           export ASC_KEY_ID ASC_ISSUER_ID
           ./script/release.sh
 

@@ -21,6 +21,8 @@ enum FoldApp {
 @MainActor
 final class FoldDelegate: NSObject, NSApplicationDelegate {
     private let store = ShelfStore()
+    private lazy var settings = FoldSettings()
+    private var settingsWindow: NSWindow?
     private var panel: NSPanel!
     private var status: NSStatusItem!
     private var hotKey: HotKey?
@@ -36,6 +38,7 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
                                                          name: NSWorkspace.didActivateApplicationNotification, object: nil)
         installEditMenu()
         store.start()
+        _ = settings
         panel = ShelfPanel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView], backing: .buffered, defer: false)
         panel.title = "Fold clipboard history"
         panel.level = .floating
@@ -49,6 +52,7 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
             store: store, use: { [weak self] in self?.use($0) },
             copy: { [weak self] in self?.copyClip($0) },
             dismiss: { [weak self] in self?.hide() },
+            openSettings: { [weak self] in self?.openSettings() },
             enablePaste: { [weak self] in self?.enablePaste() },
             canPaste: { [weak self] in self?.canPaste ?? false }
         ))
@@ -66,7 +70,8 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return event }
             return self.handle(event)
         }
-        show()
+        let launchEvent = NSAppleEventManager.shared().currentAppleEvent
+        if launchEvent?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue != keyAELaunchedAsLogInItem { show() }
     }
 
     func applicationDidResignActive(_ notification: Notification) {
@@ -94,14 +99,38 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
     @objc private func statusClick() {
         if NSApp.currentEvent?.type == .rightMouseUp {
             let menu = NSMenu()
-            for (title, action) in [("Open Fold", #selector(show)), (store.paused ? "Resume Capture" : "Pause Capture", #selector(pauseCapture)), ("Quit Fold", #selector(quit))] {
+            menu.autoenablesItems = false
+            for (title, action) in [("Open Fold", #selector(show)), ("Settings…", #selector(openSettings)), ("Check for Updates…", #selector(checkForUpdates)), (store.paused ? "Resume Capture" : "Pause Capture", #selector(pauseCapture)), ("Quit Fold", #selector(quit))] {
                 let item = menu.addItem(withTitle: title, action: action, keyEquivalent: "")
                 item.target = self
+                if action == #selector(checkForUpdates) { item.isEnabled = settings.canCheck }
             }
             status.menu = menu
             status.button?.performClick(nil)
             status.menu = nil
         } else { toggle() }
+    }
+
+    @objc private func openSettings() {
+        dismissPanel()
+        if settingsWindow == nil {
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 420, height: 290),
+                                  styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.title = "Fold Settings"
+            window.isReleasedWhenClosed = false
+            window.contentView = NSHostingView(rootView: FoldSettingsView(settings: settings))
+            window.center()
+            settingsWindow = window
+        }
+        settings.refreshLoginStatus()
+        NSApp.activate()
+        settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    @objc private func checkForUpdates() {
+        dismissPanel()
+        NSApp.activate()
+        settings.checkNow()
     }
 
     @objc private func pauseCapture() { store.paused.toggle() }

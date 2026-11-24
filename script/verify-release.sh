@@ -18,7 +18,7 @@ tag=$(jq -er 'select(.isDraft == false and .isPrerelease == false) | .tagName' "
 [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
 version=${tag#v}
 image="Fold-$version.dmg"
-gh release download "$tag" --repo "$repo" --dir "$work" --pattern "$image" --pattern checksums.txt
+gh release download "$tag" --repo "$repo" --dir "$work" --pattern "$image" --pattern checksums.txt --pattern appcast.xml
 # Compare the digest for this exact file; never interpret manifest paths as commands or inputs.
 digest=$(shasum -a 256 "$work/$image" | cut -d' ' -f1)
 grep -Fx "$digest  $image" "$work/checksums.txt"

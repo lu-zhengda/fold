@@ -19,4 +19,8 @@ hdiutil attach "$image" -readonly -nobrowse -mountpoint "$mount"
 attached=true
 test "$(readlink "$mount/Applications")" = /Applications
 "$(dirname "$0")/verify-bundle.sh" "$mount/Fold.app" "$version" "$mode"
+plist="$mount/Fold.app/Contents/Info.plist"
+if [[ "$mode" == --distribution ]] && (( $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist") >= 3 )); then
+    swift "$(dirname "$0")/verify-appcast.swift" "$image" "$plist"
+fi
 echo "PASS disk image layout and embedded app"

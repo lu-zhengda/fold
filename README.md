@@ -1,6 +1,6 @@
 # Fold
 
-Fold is a local clipboard manager for macOS 14 or later. It runs in the menu bar and opens a horizontal shelf along the bottom of your screen. There are no accounts, subscriptions, or network services.
+Fold is a local clipboard manager for macOS 14 or later. It runs in the menu bar and opens a horizontal shelf along the bottom of your screen. Clipboard history stays on your Mac. Update checks contact GitHub.
 
 ## Install
 
@@ -10,7 +10,7 @@ Install through Homebrew:
 brew install --cask lu-zhengda/tap/fold
 ```
 
-If Homebrew asks you to trust this cask, run `brew trust --cask lu-zhengda/tap/fold` and repeat the install command.
+If Homebrew asks you to trust this cask, run `brew trust --cask lu-zhengda/tap/fold` and repeat the install command. To upgrade through Homebrew, run `brew upgrade --cask --greedy lu-zhengda/tap/fold`.
 
 Or download the disk image from [GitHub Releases](https://github.com/lu-zhengda/fold/releases/latest), open it, and drag Fold into Applications. The universal app runs on Apple silicon and Intel Macs with macOS 14 or later.
 
@@ -22,7 +22,7 @@ With Xcode 16.3 or later installed, run the build script.
 ./script/build_and_run.sh
 ```
 
-The script builds and opens `dist/Fold.app`. You can open the bundle directly on subsequent launches or move it to Applications. To start it at login, add the app to Login Items in System Settings.
+The script builds and opens `dist/Fold.app`. You can open the bundle directly on subsequent launches or move it to Applications.
 
 ## Use the shelf
 
@@ -36,6 +36,14 @@ The script builds and opens `dist/Fold.app`. You can open the bundle directly on
 - For one-step pasting, choose **••• → Enable Automatic Insertion** and grant Fold Accessibility access in System Settings. Fold will send Command–V to the previous app when you choose a clip.
 - Right-click a card and choose **Pinboards** to save it to Favorites or another board. Choose **••• → New Pinboard** to create a board. Use the pinboard tabs above the cards to switch boards.
 - Press **Escape** to clear a search or close the shelf. Use the **•••** menu to pause capture, clear unpinned history, or quit.
+
+## Settings
+
+Open **••• → Settings…** on the shelf, or right-click the menu bar icon and choose **Settings…**.
+
+- **Start at login** registers Fold with macOS. If approval is required, use the Login Items button in Settings.
+- **Check for Updates…** checks the latest stable release immediately. If an update is available, you can review and install it.
+- **Automatically check for updates** enables periodic checks while Fold is running. Enable **Automatically install updates** to download and install signed updates when Fold can safely restart. Both options are off by default.
 
 ## Local storage
 
@@ -69,7 +77,7 @@ In Finder, copy a test folder containing a small file, then copy a different ite
 
 ## Release builds
 
-Set the version and build number in `Resources/Info.plist`. Run `script/release.sh` with `SIGNING_IDENTITY` set to a Developer ID Application identity and `NOTARY_PROFILE` set to a notarytool keychain profile. The script builds both architectures, signs and notarizes the app and disk image, verifies their tickets with Gatekeeper, and writes the disk image and SHA-256 checksum to `dist/`.
+Set the version and build number in `Resources/Info.plist`. Run `script/release.sh` with `SIGNING_IDENTITY` set to a Developer ID Application identity and `NOTARY_PROFILE` set to a notarytool keychain profile. The script builds both architectures, signs and notarizes the app and disk image, verifies their tickets with Gatekeeper, and writes the disk image, checksum, and Sparkle feed to `dist/`. Publish all three files together on the stable GitHub Release. Sparkle signs the update using the `local.fold.clipboard` EdDSA key in the release machine’s login Keychain. Keep a secure backup of that key for future releases.
 
 ## License
 

@@ -34,6 +34,31 @@ build_bundle() {
     cp Resources/Fold.icns "$app/Contents/Resources/"
 }
 
+# Sparkle offers an update when the feed's CFBundleVersion is greater than the
+# installed one, so the build number is derived from the version and grows with it.
+bundle_build_number() {
+    local part parts
+    if [[ ! "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "expected MAJOR.MINOR.PATCH, got '$1'" >&2
+        return 1
+    fi
+    IFS=. read -r -a parts <<< "$1"
+    for part in "${parts[@]}"; do
+        if [[ ! "$part" =~ ^(0|[1-9][0-9]{0,2})$ ]]; then
+            echo "version components must be 0-999 without leading zeros, got '$1'" >&2
+            return 1
+        fi
+    done
+    echo $(( parts[0] * 1000000 + parts[1] * 1000 + parts[2] ))
+}
+
+stamp_version() {
+    local app=$1 version=$2 build
+    build=$(bundle_build_number "$version") || return 1
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" \
+        -c "Set :CFBundleVersion $build" "$app/Contents/Info.plist"
+}
+
 create_image() {
     local folder=$1 image=$2
     ln -s /Applications "$folder/Applications"

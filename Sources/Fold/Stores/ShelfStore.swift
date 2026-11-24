@@ -50,10 +50,8 @@ final class ShelfStore: ObservableObject {
         let board = NSPasteboard.general
         guard board.changeCount != lastChange else { return }
         lastChange = board.changeCount
-        if #available(macOS 15.4, *) {
-            captureDenied = board.accessBehavior == .alwaysDeny
-            if captureDenied { return }
-        }
+        captureDenied = board.accessBehavior == .alwaysDeny
+        if captureDenied { return }
         guard !paused, let library, let payload = Clipboard.read(board) else { return }
         do {
             let app = NSWorkspace.shared.frontmostApplication

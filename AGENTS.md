@@ -9,7 +9,7 @@ Fold is a local-only macOS clipboard-history app (Swift 5.10, SwiftPM). It lives
 | `Sources/Fold/` | App entry, models, services, views |
 | `Tests/FoldTests/` | Swift tests |
 | `Resources/` | `Info.plist`, `Fold.icns` |
-| `Package.swift` | SwiftPM package (executable `Fold`, macOS 14+) |
+| `Package.swift` | SwiftPM package (executable `Fold`, macOS 26 minimum, macOS 26 and 27 supported) |
 | `script/` | Build, verify, release, and packaging shell scripts |
 | `.github/workflows/` | GitHub Actions (macOS CI) |
 
@@ -17,7 +17,7 @@ Packaging builds a universal `Fold.app` (arm64 + x86_64) via `script/package.sh`
 
 ## Build and test
 
-Requires a Mac with Xcode / Swift 5.10+ (macOS 14 SDK).
+Use Xcode 26 or later. Fold supports the two most recent major versions of macOS.
 
 ```sh
 swift test

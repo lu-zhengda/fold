@@ -16,13 +16,16 @@ expect "$(value CFBundleShortVersionString)" "$version" CFBundleShortVersionStri
 if [[ -n "${EXPECTED_BUILD:-}" ]]; then expect "$(value CFBundleVersion)" "$EXPECTED_BUILD" CFBundleVersion; fi
 expect "$(value CFBundleExecutable)" Fold CFBundleExecutable
 expect "$(value LSUIElement)" true LSUIElement
-expect "$(value LSMinimumSystemVersion)" 14.0 LSMinimumSystemVersion
+minimum=26.0
+# The four hand-released builds predate the two-version support policy.
+if [[ ${3:-} == --distribution && "$(value CFBundleVersion)" =~ ^[1-4]$ ]]; then minimum=14.0; fi
+expect "$(value LSMinimumSystemVersion)" "$minimum" LSMinimumSystemVersion
 test -s "$app/Contents/Resources/$(value CFBundleIconFile)"
 exe="$app/Contents/MacOS/Fold"
 test -x "$exe"
 for arch in arm64 x86_64; do
     lipo "$exe" -verify_arch "$arch"
-    expect "$(xcrun vtool -arch "$arch" -show-build "$exe" | awk '$1 == "minos" {print $2}')" 14.0 "$arch deployment target"
+    expect "$(xcrun vtool -arch "$arch" -show-build "$exe" | awk '$1 == "minos" {print $2}')" "$minimum" "$arch deployment target"
 done
 codesign --verify --deep --strict --verbose=2 "$app"
 if [[ ${3:-} == --distribution ]]; then

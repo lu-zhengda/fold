@@ -209,6 +209,81 @@ final class ClipboardTests: XCTestCase {
         XCTAssertThrowsError(try reopened.payload(for: id))
     }
 
+    func testRecopyWithDifferentFormatsRestoresLatestPayload() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let library = try Library(folder: folder)
+        let plain = Payload(items: [["public.utf8-plain-text": Data("Team invite".utf8)]])
+        let styled = Payload(items: [["public.utf8-plain-text": Data("Team invite \n".utf8),
+                                      "public.html": Data("<b>Team invite</b>".utf8)]])
+        try library.record(plain, source: "Notes")
+        let id = try XCTUnwrap(library.history.clips.first?.id)
+        try library.update {
+            $0.clips[0].boards.insert(Board.favorites.id)
+            $0.clips[0].rename(to: "Invite")
+        }
+        try library.record(Payload(items: [["public.utf8-plain-text": Data("Different".utf8)]]), source: "Notes")
+        try withPasteboard { board in
+            XCTAssertTrue(Clipboard.write(styled, to: board))
+            try library.record(XCTUnwrap(Clipboard.read(board)), source: "Browser", sourceBundleID: "test.browser")
+            let reopened = try Library(folder: folder)
+            XCTAssertEqual(reopened.history.clips.count, 2)
+            let newest = try XCTUnwrap(reopened.history.clips.first)
+            XCTAssertEqual(newest.id, id)
+            XCTAssertEqual(newest.boards, [Board.favorites.id])
+            XCTAssertEqual(newest.customName, "Invite")
+            XCTAssertEqual(newest.sourceBundleID, "test.browser")
+            XCTAssertEqual(newest.preview, "Team invite \n")
+            XCTAssertEqual(newest.size, styled.size)
+            XCTAssertTrue(try Clipboard.write(reopened.payload(for: id), to: board))
+            XCTAssertEqual(Clipboard.read(board)?.items, styled.items)
+        }
+    }
+
+    func testLegacyDuplicatesMergeOnOpen() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let encoder = PropertyListEncoder()
+        let board = Board(id: UUID(), name: "Work")
+        var history = History()
+        history.boards.append(board)
+        for text in ["Hello", "Unrelated", "Hello\n"] {
+            let payload = Payload(items: [["public.utf8-plain-text": Data(text.utf8)]])
+            let clip = Clipboard.describe(payload, source: "Browser", digest: payload.digest)
+            history.clips.append(clip)
+            try encoder.encode(payload).write(to: folder.appendingPathComponent(clip.id.uuidString + ".clip"))
+        }
+        history.clips[0].boards = [board.id]
+        history.clips[2].boards = [Board.favorites.id]
+        history.clips[2].rename(to: "Greeting")
+        try encoder.encode(history).write(to: folder.appendingPathComponent("History.plist"))
+        for _ in 0..<2 {
+            let library = try Library(folder: folder)
+            XCTAssertEqual(library.history.clips.map(\.id), Array(history.clips.prefix(2)).map(\.id))
+            let kept = try XCTUnwrap(library.history.clips.first)
+            XCTAssertEqual(kept.customName, "Greeting")
+            XCTAssertEqual(kept.boards, [board.id, Board.favorites.id])
+            XCTAssertEqual(try library.payload(for: kept.id).items.first?["public.utf8-plain-text"], Data("Hello".utf8))
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: folder.path).filter { $0.hasSuffix(".clip") }.count, 2)
+        }
+    }
+
+    func testTextMatchingUsesFullContentAndRespectsOtherPasteboardItems() {
+        let type = NSPasteboard.PasteboardType.string.rawValue
+        func key(_ string: String) -> String? { Payload(items: [[type: Data(string.utf8)]]).textDigest }
+        let prefix = String(repeating: "a", count: 32_768)
+        XCTAssertNotEqual(key(prefix + "1"), key(prefix + "2"))
+        XCTAssertEqual(key("one\r\ntwo"), key("one\ntwo"))
+        XCTAssertNotEqual(key("one\n  two"), key("one\ntwo"))
+        XCTAssertNotEqual(key(" One"), key("One"))
+        let text = Data("example".utf8)
+        XCTAssertNil(Payload(items: [[type: text], [type: text]]).textDigest)
+        for format in ["public.url", "public.file-url", "public.png", "com.apple.flat-rtfd"] {
+            XCTAssertNil(Payload(items: [[type: text, format: Data("different".utf8)]]).textDigest)
+        }
+    }
+
     func testPinnedClipsSurviveRetentionLimit() {
         let payload = Payload(items: [["public.utf8-plain-text": Data("hello".utf8)]])
         var sample = Clipboard.describe(payload, source: "Notes", digest: "sample")

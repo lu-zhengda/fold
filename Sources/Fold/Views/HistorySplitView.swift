@@ -31,7 +31,7 @@ struct HistorySplitView: View {
                             .frame(width: geometry.size.width * 0.40)
                         Divider()
                         ClipPreview(clip: selected, load: { store.previewPayload(selected) })
-                            .id(selected.id)
+                            .id(selected.storageID)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .popover(isPresented: Binding(get: { store.previewID == selected.id }, set: {
                                 if !$0 { store.previewID = nil }

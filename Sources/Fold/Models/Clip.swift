@@ -19,6 +19,10 @@ enum ClipKind: String, Codable, CaseIterable {
 struct Clip: Identifiable, Codable {
     let id: UUID
     let digest: String
+    var matchingDigest: String?
+    // A replacement payload is staged separately until the index commits it.
+    var payloadID: UUID?
+    var storageID: UUID { payloadID ?? id }
     var date: Date
     var source: String
     var sourceBundleID: String? = nil
@@ -61,6 +65,27 @@ struct Payload: Codable {
     }
 
     var size: Int { items.reduce(0) { $0 + $1.values.reduce(0) { $0 + $1.count } } }
+
+    var textDigest: String? {
+        guard items.count == 1, let item = items.first,
+              item.keys.allSatisfy(Self.textFormats.contains) else { return nil }
+        let plain = item[NSPasteboard.PasteboardType.string.rawValue]
+        let url = item[NSPasteboard.PasteboardType.URL.rawValue]
+        // A link label can point to a different destination.
+        guard plain == nil || url == nil || plain == url,
+              let data = plain ?? url, var text = String(data: data, encoding: .utf8),
+              !text.isEmpty else { return nil }
+        text = text.replacingOccurrences(of: "\r\n", with: "\n").replacingOccurrences(of: "\r", with: "\n")
+        let singleLine = text.dropLast(text.reversed().prefix(while: \.isWhitespace).count)
+        if !singleLine.isEmpty && !singleLine.contains(where: \.isNewline) {
+            text = String(singleLine)
+        }
+        let bytes = Data(text.precomposedStringWithCanonicalMapping.utf8)
+        return "text:" + SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static let textFormats = Set([NSPasteboard.PasteboardType.string, .URL, .html, .rtf].map(\.rawValue))
+
     var digest: String {
         var hash = SHA256()
         func addLength(_ length: Int) {

@@ -10,6 +10,7 @@ Each entry: **date** — what happened — what changed (or what we learned).
 
 - A release created with `GITHUB_TOKEN` does not fire `release: published`. Verification has to be a job in the release workflow; `verify-release.yml` is now manual only.
 - `script/release.sh` signs the Sparkle `appcast.xml` with a key from the login keychain. CI needs that key as a secret (`SPARKLE_ED_PRIVATE_KEY`, passed with `generate_appcast --ed-key-file`), or the in-app update feed breaks.
+- A manual release (v1.2.1) landed while the workflow was in review. The planner bumps from the latest stable git tag, never from `Info.plist`, so the first CI release is v1.2.2. Hand releases used small Sparkle build numbers (v1.2.1 is build 4); CI derives the build from the version (1.2.2 is 1002002), which stays higher, so installed copies still see CI releases as newer.
 - Sparkle compares `CFBundleVersion`, which was hand-edited in `Info.plist`. The build number is now derived from the version (`bundle_build_number`) and stamped into the bundle, so a release can never ship a build number that is not newer.
 - The tag is pushed only after the build job has signed, notarized, and verified the DMG. A failed build therefore leaves no tag without a release (updater's v0.24.1 lesson).
 - `cancel-in-progress: false` still keeps only one pending run per group. Closed pull requests that cannot publish use their own group so they never replace a pending release.

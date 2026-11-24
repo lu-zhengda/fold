@@ -1,6 +1,6 @@
 # Fold — agent guide
 
-Fold is a local-only macOS clipboard-history app (Swift 5.10, SwiftPM). It lives in the menu bar and shows a horizontal shelf of recent clips. There is no network access, accounts, or telemetry.
+Fold is a local-only macOS clipboard-history app (Swift 5.10, SwiftPM). It lives in the menu bar and shows recent clips in a split view. There is no network access, accounts, or telemetry.
 
 ## Repository layout
 

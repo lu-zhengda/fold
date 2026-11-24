@@ -34,7 +34,7 @@ struct ShelfSearchField: NSViewRepresentable {
 
     final class Coordinator: NSObject, NSSearchFieldDelegate {
         var parent: ShelfSearchField
-        var lastFocusRequest: Int?
+        var lastFocusRequest = 0
         init(_ parent: ShelfSearchField) { self.parent = parent }
         func controlTextDidChange(_ notification: Notification) {
             if let field = notification.object as? NSSearchField { parent.query = field.stringValue }

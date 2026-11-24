@@ -17,8 +17,8 @@ if [[ -n "${EXPECTED_BUILD:-}" ]]; then expect "$(value CFBundleVersion)" "$EXPE
 expect "$(value CFBundleExecutable)" Fold CFBundleExecutable
 expect "$(value LSUIElement)" true LSUIElement
 minimum=26.0
-# The four hand-released builds predate the two-version support policy.
-if [[ ${3:-} == --distribution && "$(value CFBundleVersion)" =~ ^[1-4]$ ]]; then minimum=14.0; fi
+# Releases through 1.2.2 predate the two-version support policy.
+if [[ ${3:-} == --distribution && "$version" =~ ^1\.(0\.0|1\.0|2\.[012])$ ]]; then minimum=14.0; fi
 expect "$(value LSMinimumSystemVersion)" "$minimum" LSMinimumSystemVersion
 test -s "$app/Contents/Resources/$(value CFBundleIconFile)"
 exe="$app/Contents/MacOS/Fold"

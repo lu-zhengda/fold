@@ -9,7 +9,6 @@ final class ShelfStore: ObservableObject {
     @Published var selection: UUID?
     @Published var notice: String?
     @Published var openCount = 0
-    @Published var searching = false
     @Published var searchFocusRequest = 0
     @Published var previewID: UUID?
     @Published var captureDenied = false
@@ -60,13 +59,6 @@ final class ShelfStore: ObservableObject {
         } catch { message("Couldn’t save this clip. \(error.localizedDescription)") }
     }
 
-    // Older libraries store file URLs in the payload only. Read just the displayed file clips.
-    func firstFileURL(for clip: Clip) -> URL? {
-        guard clip.kind == .files,
-              let data = try? library?.payload(for: clip.id).items.first?[NSPasteboard.PasteboardType.fileURL.rawValue] else { return nil }
-        return URL(dataRepresentation: data, relativeTo: nil)
-    }
-
     func previewPayload(_ clip: Clip) -> Payload? {
         try? library?.payload(for: clip.id)
     }
@@ -108,7 +100,7 @@ final class ShelfStore: ObservableObject {
     func move(_ delta: Int) {
         let cards = visible
         guard !cards.isEmpty else { return }
-        let index = cards.firstIndex { $0.id == selected?.id } ?? 0
+        let index = cards.firstIndex { $0.id == selection } ?? 0
         selection = cards[min(max(0, index + delta), cards.count - 1)].id
     }
 

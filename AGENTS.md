@@ -75,7 +75,9 @@ The `test` job runs `./script/verify.sh --launch` and uploads Swift coverage whe
 ## Contributing
 
 - Every change lands via pull request to `main` (squash merge).
-- To **publish a new release**, add exactly one label on the PR: `semver:major`, `semver:minor`, or `semver:patch`. Merging publishes the next `vX.Y.Z` (see `docs/RELEASING.md`). No label means no release; docs-only and CI-only PRs stay unlabeled.
+- For PRs that ship user-facing changes, apply exactly one release label. Use `semver:minor` for backward-compatible features, `semver:patch` for bug fixes, and `semver:major` for breaking changes. Leave docs-only and CI-only PRs unlabeled.
+- **Before enabling auto-merge or merging manually**, verify the labels on the GitHub PR. The release workflow reads them at merge time and publishes only when exactly one semver label is present.
+- If a release label was missed, check published releases and active release runs first. If the change still needs a release, dispatch `release-on-merge.yml` on `main` with the intended `bump`. This publishes the current head of `main`. See [release recovery](docs/RELEASING.md#recovery).
 - Keep Fold **local-only:** no outbound network, sign-in, or analytics in app code or dependencies.
 - **Public-repo hygiene:** never commit or paste machine hostnames, `/Users/...` paths, local temp directories, or raw local logs into PRs, issues, docs, or test fixtures. Use neutral placeholders in examples.
 

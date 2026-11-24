@@ -41,5 +41,11 @@ create_image "$work/image" "$work/$image"
 codesign --timestamp --sign "$SIGNING_IDENTITY" "$work/$image"
 notarize "$work/$image" "$work/$image"
 spctl --assess --type open --context context:primary-signature --verbose "$work/$image"
+mkdir "$work/feed"
+ln "$work/$image" "$work/feed/$image"
+.build/release-arm64/artifacts/sparkle/Sparkle/bin/generate_appcast \
+    --account local.fold.clipboard --maximum-deltas 0 \
+    --download-url-prefix "https://github.com/lu-zhengda/fold/releases/download/v$version/" "$work/feed"
+swift script/verify-appcast.swift "$work/feed/$image" "$app/Contents/Info.plist"
 (cd "$work" && shasum -a 256 "$image" > checksums.txt)
-mv "$work/$image" "$work/checksums.txt" "$out/"
+mv "$work/feed/appcast.xml" "$work/$image" "$work/checksums.txt" "$out/"

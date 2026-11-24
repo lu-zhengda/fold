@@ -5,6 +5,7 @@ struct ShelfView: View {
     let use: (Clip) -> Void
     let copy: (Clip) -> Void
     let dismiss: () -> Void
+    let openSettings: () -> Void
     let enablePaste: () -> Void
     let canPaste: () -> Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -148,6 +149,8 @@ struct ShelfView: View {
 
     private var options: some View {
             Menu {
+                Button("Settings…", action: openSettings).keyboardShortcut(",")
+                Divider()
                 Button("New Pinboard…") { boardName = ""; creatingBoard = true }
                 Divider()
                 Button(store.paused ? "Resume Capture" : "Pause Capture") { store.paused.toggle() }

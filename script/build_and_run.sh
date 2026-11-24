@@ -11,6 +11,8 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 install -m 755 "$product" "$bin"
 cp Resources/Info.plist "$app/Contents/Info.plist"
 cp Resources/Fold.icns "$app/Contents/Resources/"
+source script/package.sh
+embed_sparkle "$app" .build/artifacts/sparkle/Sparkle
 codesign --force --sign - "$app"
 case "$mode" in
     run) open -n "$app" ;;

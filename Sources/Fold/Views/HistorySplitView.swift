@@ -10,6 +10,8 @@ struct HistorySplitView: View {
     let canPaste: () -> Bool
     @State private var creatingBoard = false
     @State private var boardName = ""
+    @State private var clipToRename: Clip?
+    @State private var clipName = ""
     @State private var confirmClear = false
     @State private var confirmRemoveBoard = false
 
@@ -50,6 +52,14 @@ struct HistorySplitView: View {
                     } label: { Image(systemName: "trash") }
                     .accessibilityLabel("Delete selected clip").help("Delete selected clip (⌫)")
                     .disabled(selected == nil)
+                    if let selected {
+                        let favorite = selected.boards.contains(Board.favorites.id)
+                        Button { store.toggle(selected, on: .favorites) } label: {
+                            Image(systemName: favorite ? "star.fill" : "star")
+                        }
+                        .accessibilityLabel(favorite ? "Remove from Favorites" : "Add to Favorites")
+                        .help(favorite ? "Remove from Favorites (⌘D)" : "Add to Favorites (⌘D)")
+                    }
                     if let notice = store.notice { Text(notice).lineLimit(1) }
                     Spacer()
                     Text("↑ ↓  Navigate")
@@ -67,6 +77,25 @@ struct HistorySplitView: View {
         .overlay(RoundedRectangle(cornerRadius: 17, style: .continuous).strokeBorder(.primary.opacity(0.15)).allowsHitTesting(false))
         .onChange(of: store.boardID) { store.query = ""; store.selection = nil }
         .onChange(of: store.query) { store.selection = nil }
+        .sheet(item: $clipToRename) { clip in
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Rename Clip").font(.headline)
+                TextField("Clip name", text: $clipName)
+                Text("Leave the name blank to use the original title.")
+                    .font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { clipToRename = nil }.keyboardShortcut(.cancelAction)
+                    Button("Save") {
+                        store.change { history in
+                            guard let index = history.clips.firstIndex(where: { $0.id == clip.id }) else { return }
+                            history.clips[index].rename(to: clipName)
+                        }
+                        clipToRename = nil
+                    }.keyboardShortcut(.defaultAction)
+                }
+            }.padding(20).frame(width: 320)
+        }
         .alert("Clear unpinned history?", isPresented: $confirmClear) {
             Button("Cancel", role: .cancel) {}
             Button("Clear history", role: .destructive) { store.change { $0.clips.removeAll { $0.boards.isEmpty } } }
@@ -191,6 +220,10 @@ struct HistorySplitView: View {
     @ViewBuilder private func clipActions(_ clip: Clip) -> some View {
         Button("Preview") { store.selection = clip.id; store.previewID = clip.id }
         Button("Copy Clip") { copy(clip) }
+        Button("Rename Clip…") {
+            clipName = clip.listTitle
+            clipToRename = clip
+        }
         if canPaste() { Button("Paste into Previous App") { use(clip) } }
         Menu("Pinboards") {
             ForEach(store.history.boards) { board in

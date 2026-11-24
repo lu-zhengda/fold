@@ -183,7 +183,10 @@ final class ClipboardTests: XCTestCase {
         let payload = Payload(items: [["public.utf8-plain-text": Data("https://example.com/fold".utf8)]])
         try first.record(payload, source: "Safari")
         let id = try XCTUnwrap(first.history.clips.first?.id)
-        try first.update { $0.clips[0].boards.insert(Board.favorites.id) }
+        try first.update {
+            $0.clips[0].boards.insert(Board.favorites.id)
+            $0.clips[0].rename(to: "  Team invite  ")
+        }
         try first.record(payload, source: "Notes")
         let reopened = try Library(folder: folder)
         XCTAssertEqual(reopened.history.clips.count, 1)
@@ -191,9 +194,16 @@ final class ClipboardTests: XCTestCase {
         XCTAssertEqual(saved.id, id)
         XCTAssertEqual(saved.boards, [Board.favorites.id])
         XCTAssertEqual(saved.kind, .link)
+        XCTAssertEqual(saved.listTitle, "Team invite")
+        XCTAssertTrue(saved.matches("INVITE"))
         XCTAssertTrue(saved.matches("EXAMPLE"))
         XCTAssertTrue(saved.matches("Notes"))
         XCTAssertEqual(try reopened.payload(for: id).items, payload.items)
+        try reopened.update { $0.clips[0].rename(to: "  ") }
+        let reset = try XCTUnwrap(try Library(folder: folder).history.clips.first)
+        XCTAssertNil(reset.customName)
+        XCTAssertEqual(reset.listTitle, "example.com")
+        XCTAssertFalse(reset.matches("invite"))
         try reopened.update { $0.clips.removeAll() }
         XCTAssertTrue(try Library(folder: folder).history.clips.isEmpty)
         XCTAssertThrowsError(try reopened.payload(for: id))

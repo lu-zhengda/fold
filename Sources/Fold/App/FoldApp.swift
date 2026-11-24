@@ -244,6 +244,11 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
               event.window === panel || (event.window == nil && panel.isKeyWindow) else { return event }
         let editing = (panel.firstResponder as? NSTextView)?.isFieldEditor == true
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting([.function, .numericPad])
+        if modifiers.subtracting(.capsLock) == .command, event.charactersIgnoringModifiers?.lowercased() == "d",
+           store.previewID == nil, let clip = store.selected {
+            if !event.isARepeat { store.toggle(clip, on: .favorites) }
+            return nil
+        }
         if modifiers.subtracting(.capsLock) == .command, event.charactersIgnoringModifiers?.lowercased() == "c",
            !editing, store.previewID == nil, let clip = store.selected {
             copyClip(clip)

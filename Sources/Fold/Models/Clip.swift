@@ -28,9 +28,15 @@ struct Clip: Identifiable, Codable {
     let thumbnail: Data?
     let size: Int
     var boards: Set<UUID> = []
+    var customName: String?
+
+    mutating func rename(to name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        customName = trimmed.isEmpty ? nil : trimmed
+    }
 
     func matches(_ query: String) -> Bool {
-        query.isEmpty || [preview, source, detail, kind.rawValue].contains { $0.localizedCaseInsensitiveContains(query) }
+        query.isEmpty || [customName ?? "", preview, source, detail, kind.rawValue].contains { $0.localizedCaseInsensitiveContains(query) }
     }
 }
 

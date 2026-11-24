@@ -75,8 +75,8 @@ func shutdown() {
     if launched?.isTerminated == true {
         forgetPID()
     }
-    if let libraryDirectory {
-        try? FileManager.default.removeItem(at: libraryDirectory)
+    if let directory = libraryDirectory {
+        try? FileManager.default.removeItem(at: directory)
         libraryDirectory = nil
     }
 }
@@ -295,8 +295,8 @@ guard let app = launched,
 let ready = wait(seconds: 15) { app.isFinishedLaunching || app.isTerminated }
 if shouldStop != 0 { fail("interrupted") }
 let passed = ready && !app.isTerminated && app.activationPolicy == .accessory
-if passed, checkHistory, let libraryDirectory {
-    checkClipboardHistory(library: libraryDirectory)
+if passed, checkHistory, let directory = libraryDirectory {
+    checkClipboardHistory(library: directory)
 }
 app.terminate()
 if !wait(seconds: 5, until: { app.isTerminated }) {
@@ -306,8 +306,8 @@ guard passed, wait(seconds: 5, until: { app.isTerminated }) else {
     fail("Fold did not complete a menu bar app launch and shutdown")
 }
 forgetPID()
-if let libraryDirectory {
-    try? FileManager.default.removeItem(at: libraryDirectory)
+if let directory = libraryDirectory {
+    try? FileManager.default.removeItem(at: directory)
     libraryDirectory = nil
 }
 print("PASS launched and quit " + path)

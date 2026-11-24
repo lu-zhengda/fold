@@ -43,7 +43,7 @@ Open **••• → Settings…** on the shelf, or right-click the menu bar ico
 
 - **Start at login** registers Fold with macOS. If approval is required, use the Login Items button in Settings.
 - **Check for Updates…** checks the latest stable release immediately. If an update is available, you can review and install it.
-- **Automatically check for updates** enables periodic checks while Fold is running. Enable **Automatically install updates** to download and install signed updates when Fold can safely restart. Both options are off by default.
+- **Automatically install updates** lets Fold check periodically and install signed updates when it can safely restart. The switch is off by default. If you enabled only automatic checks in Fold 1.2.0, use **Check for Updates…** to check manually after upgrading.
 
 ## Local storage
 

@@ -4,16 +4,19 @@ import SwiftUI
 
 @MainActor
 final class FoldSettings: ObservableObject {
-    private let controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    private let controller = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
     @Published private(set) var loginStatus = SMAppService.mainApp.status
     @Published private(set) var loginError: String?
-    @Published private(set) var checksAutomatically = false
     @Published private(set) var installsAutomatically = false
     @Published private(set) var canCheck = false
 
     init() {
         let updater = controller.updater
-        updater.publisher(for: \.automaticallyChecksForUpdates).assign(to: &$checksAutomatically)
+        // Earlier versions allowed scheduled checks without automatic installation.
+        if updater.automaticallyChecksForUpdates && !updater.automaticallyDownloadsUpdates {
+            updater.automaticallyChecksForUpdates = false
+        }
+        controller.startUpdater()
         updater.publisher(for: \.automaticallyDownloadsUpdates).assign(to: &$installsAutomatically)
         updater.publisher(for: \.canCheckForUpdates).assign(to: &$canCheck)
     }
@@ -31,12 +34,16 @@ final class FoldSettings: ObservableObject {
         refreshLoginStatus()
     }
 
-    func setAutomaticChecks(_ enabled: Bool) {
-        controller.updater.automaticallyChecksForUpdates = enabled
-    }
-
     func setAutomaticInstallation(_ enabled: Bool) {
-        controller.updater.automaticallyDownloadsUpdates = enabled
+        let updater = controller.updater
+        // Sparkle accepts a download preference only while checks are enabled.
+        if enabled {
+            updater.automaticallyChecksForUpdates = true
+            updater.automaticallyDownloadsUpdates = true
+        } else {
+            updater.automaticallyDownloadsUpdates = false
+            updater.automaticallyChecksForUpdates = false
+        }
     }
 
     func checkNow() { controller.checkForUpdates(nil) }
@@ -58,11 +65,10 @@ struct FoldSettingsView: View {
                 if let error = settings.loginError { Text(error).foregroundStyle(.secondary) }
             }
             Section("Updates") {
-                Toggle("Automatically check for updates", isOn: Binding(get: { settings.checksAutomatically }, set: settings.setAutomaticChecks))
                 Toggle("Automatically install updates", isOn: Binding(
-                    get: { settings.checksAutomatically && settings.installsAutomatically },
+                    get: { settings.installsAutomatically },
                     set: settings.setAutomaticInstallation
-                )).disabled(!settings.checksAutomatically)
+                ))
                 LabeledContent("Fold " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")) {
                     Button("Check for Updates…", action: settings.checkNow).disabled(!settings.canCheck)
                 }

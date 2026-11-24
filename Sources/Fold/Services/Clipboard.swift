@@ -63,7 +63,7 @@ enum Clipboard {
         return board.writeObjects(objects)
     }
 
-    static func describe(_ payload: Payload, source: String, digest: String) -> Clip {
+    static func describe(_ payload: Payload, source: String, digest: String, id: UUID = UUID()) -> Clip {
         let first = payload.items[0]
         func string(_ type: NSPasteboard.PasteboardType) -> String? {
             first[type.rawValue].flatMap { String(data: $0, encoding: .utf8) }
@@ -113,6 +113,6 @@ enum Clipboard {
                 if preview.isEmpty { preview = "Formatted content"; detail = "Rich text" }
             }
         }
-        return Clip(id: UUID(), digest: digest, date: .now, source: source, kind: kind, preview: String(preview.prefix(32_768)), detail: detail, thumbnail: thumbnail, size: payload.size)
+        return Clip(id: id, digest: digest, date: .now, source: source, kind: kind, preview: String(preview.prefix(32_768)), detail: detail, thumbnail: thumbnail, size: payload.size)
     }
 }

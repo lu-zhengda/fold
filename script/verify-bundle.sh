@@ -13,6 +13,7 @@ expect() {
 plutil -lint "$plist"
 expect "$(value CFBundleIdentifier)" local.fold.clipboard CFBundleIdentifier
 expect "$(value CFBundleShortVersionString)" "$version" CFBundleShortVersionString
+if [[ -n "${EXPECTED_BUILD:-}" ]]; then expect "$(value CFBundleVersion)" "$EXPECTED_BUILD" CFBundleVersion; fi
 expect "$(value CFBundleExecutable)" Fold CFBundleExecutable
 expect "$(value LSUIElement)" true LSUIElement
 expect "$(value LSMinimumSystemVersion)" 14.0 LSMinimumSystemVersion
@@ -29,6 +30,8 @@ if [[ ${3:-} == --distribution ]]; then
     # that trusts other Developer ID certificates.
     codesign --verify --strict --all-architectures -R='anchor apple generic and identifier "local.fold.clipboard" and certificate leaf[subject.OU] = "XY7H3QGJ2T" and certificate leaf[field.1.2.840.113635.100.6.1.13] exists' "$app"
     xcrun stapler validate "$app"
-    spctl --assess --type execute --verbose=2 "$app"
+    assessment=$(spctl --assess --type execute --verbose=2 "$app" 2>&1) || { echo "$assessment" >&2; exit 1; }
+    echo "$assessment"
+    grep -Fqx 'source=Notarized Developer ID' <<< "$assessment"
 fi
 echo "PASS Fold.app $version (arm64, x86_64)"

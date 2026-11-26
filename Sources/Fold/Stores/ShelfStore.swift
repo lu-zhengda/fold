@@ -65,7 +65,6 @@ final class ShelfStore: ObservableObject {
             noteCapture("denied")
             return
         }
-        // A smoke launch must still record copies when the developer has paused capture.
         guard smokeLibrary != nil || !paused, let library else { return }
         guard let payload = Clipboard.read(board) else {
             noteCapture("unreadable")

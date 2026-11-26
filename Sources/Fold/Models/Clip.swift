@@ -20,7 +20,7 @@ struct Clip: Identifiable, Codable {
     let id: UUID
     let digest: String
     var matchingDigest: String?
-    // A replacement payload is staged separately until the index commits it.
+    /// Staged payload id until the history index commits a replacement clip.
     var payloadID: UUID?
     var storageID: UUID { payloadID ?? id }
     var date: Date
@@ -47,7 +47,10 @@ struct Clip: Identifiable, Codable {
 struct Board: Identifiable, Codable {
     let id: UUID
     var name: String
-    static let favorites = Board(id: UUID(uuidString: "E86A5809-F384-47AD-83AF-3E543F01C845")!, name: "Favorites")
+    static let favorites = Board(
+        id: UUID(uuid: (0xE8, 0x6A, 0x58, 0x09, 0xF3, 0x84, 0x47, 0xAD, 0x83, 0xAF, 0x3E, 0x54, 0x3F, 0x01, 0xC8, 0x45)),
+        name: "Favorites"
+    )
 }
 
 struct History: Codable {
@@ -71,7 +74,6 @@ struct Payload: Codable {
               item.keys.allSatisfy(Self.textFormats.contains) else { return nil }
         let plain = item[NSPasteboard.PasteboardType.string.rawValue]
         let url = item[NSPasteboard.PasteboardType.URL.rawValue]
-        // A link label can point to a different destination.
         guard plain == nil || url == nil || plain == url,
               let data = plain ?? url, var text = String(data: data, encoding: .utf8),
               !text.isEmpty else { return nil }

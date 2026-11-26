@@ -87,19 +87,17 @@ enum FileClips {
             return true
         }
         guard accessible else { return false }
-        // Set the actual file URL immediately. writeObjects can accept a promised
-        // representation before the pasteboard server tries to issue file access.
         staging.declareTypes([.fileURL], owner: nil)
         return staging.setData(url.dataRepresentation, forType: .fileURL)
             && staging.data(forType: .fileURL) == url.dataRepresentation
     }
 
+    /// Publishes file URLs and verifies each item round-trips through the pasteboard server.
     private static func publish(_ urls: [URL], to board: NSPasteboard) -> Bool {
         board.clearContents()
         guard board.writeObjects(urls.map { $0 as NSURL }),
               board.types?.contains(.fileURL) == true,
               let items = board.pasteboardItems, items.count == urls.count else { return false }
-        // writeObjects can return true even when macOS drops a protected file URL.
         return zip(items, urls).allSatisfy { item, expected in
             guard let data = item.data(forType: .fileURL),
                   let received = URL(dataRepresentation: data, relativeTo: nil) else { return false }

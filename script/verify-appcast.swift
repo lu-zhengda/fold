@@ -1,4 +1,4 @@
-// Verify the archive offered to Sparkle against the public key in the signed app.
+/// Verifies the archive offered to Sparkle against the public key in the signed app.
 import CryptoKit
 import Foundation
 

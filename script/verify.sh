@@ -26,6 +26,8 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 1' INT TERM
 for file in script/*.sh; do bash -n "$file"; done
+bash -n script/check-pr-standard.sh
+swiftlint lint --strict --config .swiftlint.yml
 swift script/launch-smoke.swift --self-test
 script/test-plan-release.sh
 mkdir -p .build/verification

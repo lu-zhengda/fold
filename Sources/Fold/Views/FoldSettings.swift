@@ -12,7 +12,6 @@ final class FoldSettings: ObservableObject {
 
     init() {
         let updater = controller.updater
-        // Earlier versions allowed scheduled checks without automatic installation.
         if updater.automaticallyChecksForUpdates && !updater.automaticallyDownloadsUpdates {
             updater.automaticallyChecksForUpdates = false
         }
@@ -36,7 +35,6 @@ final class FoldSettings: ObservableObject {
 
     func setAutomaticInstallation(_ enabled: Bool) {
         let updater = controller.updater
-        // Sparkle accepts a download preference only while checks are enabled.
         if enabled {
             updater.automaticallyChecksForUpdates = true
             updater.automaticallyDownloadsUpdates = true

@@ -66,7 +66,6 @@ final class ClipboardTests: XCTestCase {
     }
 
     func testLegacyFolderInAnAccessibleProjectRestoresWithoutPicker() throws {
-        // Exercise the checkout's real location, including a checkout under Documents.
         let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         let reference = try XCTUnwrap((folder as NSURL).fileReferenceURL())
         var clip = Payload(items: [["public.file-url": reference.dataRepresentation]])

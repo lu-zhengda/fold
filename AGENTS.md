@@ -75,6 +75,8 @@ The `test` job runs `./script/verify.sh --launch` and uploads Swift coverage whe
 ## Contributing
 
 - Every change lands via pull request to `main` (squash merge).
+- **Pull request standard (CI):** title must match `type(scope): subject` (conventional types such as `feat`, `fix`, `ci`, `docs`, `test`). Body is at most 40 lines and includes `## Why`, `## What changed`, `## Blast Radius`, `## Verification`, plus a standalone `Fixes ZHE-<n>` line linking the Linear issue. Dependabot pull requests are exempt. See `script/check-pr-standard.sh`.
+- **SwiftLint (CI):** `script/verify.sh` runs `swiftlint lint --strict` with `.swiftlint.yml` (no plain `//` comments, no force unwraps/casts/tries, no `TODO`). Fix violations before pushing; local runs need SwiftLint installed (preinstalled on GitHub-hosted `macos-latest`).
 - For PRs that ship user-facing changes, apply exactly one release label. Use `semver:minor` for backward-compatible features, `semver:patch` for bug fixes, and `semver:major` for breaking changes. Leave docs-only and CI-only PRs unlabeled.
 - **Before enabling auto-merge or merging manually**, verify the labels on the GitHub PR. The release workflow reads them at merge time and publishes only when exactly one semver label is present.
 - If a release label was missed, check published releases and active release runs first. If the change still needs a release, dispatch `release-on-merge.yml` on `main` with the intended `bump`. This publishes the current head of `main`. See [release recovery](docs/RELEASING.md#recovery).

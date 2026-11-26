@@ -1,0 +1,37 @@
+# Strict lint gate (swiftlint lint --strict). CI runs this via script/verify.sh.
+included:
+  - Sources
+  - Tests
+  - script
+  - Package.swift
+
+opt_in_rules:
+  - force_cast
+  - force_try
+  - force_unwrapping
+  - todo
+
+disabled_rules:
+  - file_length
+  - function_body_length
+  - type_body_length
+  - cyclomatic_complexity
+  - identifier_name
+  - implicit_optional_initialization
+  - line_length
+  - nesting
+  - optional_data_string_conversion
+  - statement_position
+  - trailing_comma
+  - trailing_whitespace
+  - void_function_in_ternary
+  - redundant_discardable_let
+
+custom_rules:
+  no_plain_line_comment:
+    name: "Plain // comment"
+    regex: '^\s*//(?![/])(?!\s*MARK:)(?!\s*swift-tools-version:)(?!\s*swiftlint:)'
+    message: "Use /// documentation comments or // MARK: instead of plain // comments."
+    severity: error
+
+reporter: "xcode"

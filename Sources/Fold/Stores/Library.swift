@@ -35,7 +35,6 @@ final class Library {
                     clip.matchingDigest = stored.textDigest ?? clip.digest
                 }
             }
-            // Keep unreadable entries intact and retry them the next time the library opens.
             if let key = clip.matchingDigest, let position = positions[key] {
                 clips[position].boards.formUnion(clip.boards)
                 if clips[position].customName == nil { clips[position].customName = clip.customName }

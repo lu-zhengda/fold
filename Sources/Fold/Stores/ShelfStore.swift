@@ -46,8 +46,9 @@ final class ShelfStore: ObservableObject {
                 let root = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                 folder = LibraryLocation.folder(arguments: arguments, applicationSupport: root)
             }
-            library = try Library(folder: folder)
-            history = library!.history
+            let opened = try Library(folder: folder)
+            library = opened
+            history = opened.history
         } catch { notice = "Couldn’t open local history. \(error.localizedDescription)"; return }
         let timer = Timer(timeInterval: 0.45, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.capture() }
@@ -65,7 +66,6 @@ final class ShelfStore: ObservableObject {
             noteCapture("denied")
             return
         }
-        // A smoke launch must still record copies when the developer has paused capture.
         guard smokeLibrary != nil || !paused, let library else { return }
         guard let payload = Clipboard.read(board) else {
             noteCapture("unreadable")
@@ -116,8 +116,12 @@ final class ShelfStore: ObservableObject {
             }
             lastChange = NSPasteboard.general.changeCount
             return true
-        } catch CocoaError.userCancelled { return false }
-        catch { message("Couldn’t restore this clip. \(error.localizedDescription)"); return false }
+        } catch CocoaError.userCancelled {
+            return false
+        } catch {
+            message("Couldn’t restore this clip. \(error.localizedDescription)")
+            return false
+        }
     }
 
     func change(_ edit: (inout History) -> Void) {
@@ -131,8 +135,11 @@ final class ShelfStore: ObservableObject {
     func toggle(_ clip: Clip, on board: Board) {
         change {
             guard let i = $0.clips.firstIndex(where: { $0.id == clip.id }) else { return }
-            if $0.clips[i].boards.contains(board.id) { $0.clips[i].boards.remove(board.id) }
-            else { $0.clips[i].boards.insert(board.id) }
+            if $0.clips[i].boards.contains(board.id) {
+                $0.clips[i].boards.remove(board.id)
+            } else {
+                $0.clips[i].boards.insert(board.id)
+            }
         }
     }
 

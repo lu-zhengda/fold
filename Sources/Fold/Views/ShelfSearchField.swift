@@ -27,7 +27,6 @@ struct ShelfSearchField: NSViewRepresentable {
         DispatchQueue.main.async {
             guard let window = field.window else { return }
             window.makeFirstResponder(field)
-            // Opening the field from a typed letter should append the next letter.
             field.currentEditor()?.selectedRange = NSRange(location: (field.stringValue as NSString).length, length: 0)
         }
     }

@@ -11,12 +11,11 @@ enum Clipboard {
     ]
     private static let supported: [NSPasteboard.PasteboardType] = [.fileURL, .URL, .string, .rtf, .rtfd, .html, .png, .tiff, .init("public.jpeg")]
 
+    /// Reads a payload, preferring native file URLs over legacy filename lists from Finder.
     static func read(_ board: NSPasteboard) -> Payload? {
         let revision = board.changeCount
         guard let contents = board.pasteboardItems, !contents.isEmpty,
               contents.allSatisfy({ item in item.types.allSatisfy { !privateTypes.contains($0.rawValue) } }) else { return nil }
-        // Finder selections also advertise filenames as text and icons as images.
-        // Store one native file reference per item, including on legacy filename pasteboards.
         let hasFiles = contents.contains { $0.types.contains(.fileURL) }
         let legacy = NSPasteboard.PasteboardType("NSFilenamesPboardType")
         if hasFiles || board.types?.contains(legacy) == true {
@@ -45,8 +44,8 @@ enum Clipboard {
         return revision == board.changeCount ? Payload(items: items) : nil
     }
 
+    /// Writes a payload, restoring file bookmarks saved by earlier Fold versions when needed.
     static func write(_ payload: Payload, to board: NSPasteboard) -> Bool {
-        // This path also handles clips captured by earlier versions with a text fallback.
         if payload.items.contains(where: { $0[NSPasteboard.PasteboardType.fileURL.rawValue] != nil }) {
             var files = payload
             do {

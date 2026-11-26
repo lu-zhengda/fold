@@ -22,6 +22,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: SwiftLint
+        run: |
+          if ! command -v swiftlint >/dev/null; then
+            brew install swiftlint
+          fi
+          swiftlint version
+      - name: Check pull request standard
+        if: >-
+          github.event_name == 'pull_request' &&
+          (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'edited') &&
+          github.actor != 'dependabot[bot]'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: ./script/check-pr-standard.sh
       - name: Test, package, verify the disk image, and launch Fold
         run: ./script/verify.sh --launch
       - name: Upload Swift test coverage

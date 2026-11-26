@@ -2,6 +2,15 @@
 
 Each entry: **date** — what happened — what changed (or what we learned).
 
+## Lint and PR standards
+
+| Mistake | Rule | Enforced where |
+| --- | --- | --- |
+| Plain `//` line comments instead of API docs or section markers | Use `///` for documentation and `// MARK:` for sections; no other `//` comments | `.swiftlint.yml` custom rule `no_plain_line_comment`; `swiftlint lint --strict` in `script/verify.sh` |
+| `as!`, `try!`, or `!` force unwrap | Prefer safe casts, `try`, and optional handling | SwiftLint opt-in `force_cast`, `force_try`, `force_unwrapping` |
+| `TODO` / `FIXME` left in production code | Finish the work or track it outside the repo | SwiftLint opt-in `todo` |
+| PR title or body does not match the repo standard | Title `type(scope): subject`; body ≤ 40 lines with Why, What changed, Blast Radius, Verification, and `Fixes ZHE-<n>` | `script/check-pr-standard.sh` on pull request opened, synchronize, and edited (dependabot exempt) |
+
 ---
 
 ## 2026-11-24

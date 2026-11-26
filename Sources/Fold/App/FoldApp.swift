@@ -140,6 +140,7 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         if panel.isKeyWindow && panel.isVisible { hide() } else { show() }
     }
 
+    /// Presents the shelf without activating Fold, so the frontmost editor keeps typing context until dismiss.
     @objc private func show() {
         rememberExternalApp(NSWorkspace.shared.frontmostApplication)
         target = lastExternalApp
@@ -154,8 +155,6 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         store.query = ""
         store.selection = nil
         store.openCount += 1
-        // A nonactivating panel borrows keyboard focus while the editor remains active.
-        // Ordering it out gives the next keystroke back to the same editing window.
         if outsideClickMonitor == nil {
             outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
                 self?.dismissPanel()
@@ -174,9 +173,9 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         panel?.orderOut(nil)
     }
 
+    /// Hides the shelf and yields activation back to the app that owned focus before Fold opened.
     private func hide() {
         dismissPanel()
-        // Explicit launches and some AppKit controls can still activate Fold.
         if NSApp.isActive {
             if let target, !target.isTerminated {
                 NSApp.yieldActivation(to: target)
@@ -274,9 +273,13 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         case kVK_Space where !editing:
             store.previewID = store.selected?.id
         case kVK_Escape:
-            if !store.query.isEmpty { store.query = "" }
-            else if editing { panel.makeFirstResponder(nil) }
-            else { hide() }
+            if !store.query.isEmpty {
+                store.query = ""
+            } else if editing {
+                panel.makeFirstResponder(nil)
+            } else {
+                hide()
+            }
         case kVK_UpArrow: store.move(-1)
         case kVK_LeftArrow where !editing: store.move(-1)
         case kVK_DownArrow: store.move(1)

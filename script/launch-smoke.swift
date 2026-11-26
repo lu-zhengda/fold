@@ -1,4 +1,4 @@
-// Run in a disposable GUI session. Fold starts its normal clipboard monitor.
+/// Smoke-test helper: launches Fold in a disposable GUI session and optionally checks clipboard history.
 import AppKit
 import Darwin
 
@@ -25,9 +25,8 @@ func wait(seconds: TimeInterval, until predicate: () -> Bool, interruptible: Boo
     return predicate()
 }
 
+/// Ignores SIGINT/SIGTERM so DispatchSource can observe clean shutdown after a direct Process launch.
 func installSignals() {
-    // Ignore the defaults so DispatchSource can observe them. Installed after a
-    // direct Process launch so the app does not inherit the ignored disposition.
     signal(SIGINT, SIG_IGN)
     signal(SIGTERM, SIG_IGN)
     for number in [SIGINT, SIGTERM] {
@@ -248,8 +247,6 @@ if checkHistory {
 let launchArguments = libraryDirectory.map { ["--library-folder", $0.path] } ?? []
 
 if executable {
-    // A hosted runner has no person to acknowledge a Finder first-open sheet.
-    // Exercise the installed binary after the separate Gatekeeper assessment.
     let child = Process()
     child.executableURL = url.appendingPathComponent("Contents/MacOS/Fold")
     if !launchArguments.isEmpty { child.arguments = launchArguments }

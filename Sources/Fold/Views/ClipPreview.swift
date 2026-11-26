@@ -70,8 +70,9 @@ struct ClipPreview: View {
                 let thumbnail = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
                 if !Task.isCancelled { image = thumbnail?.nsImage }
             default:
-                if let data = first[NSPasteboard.PasteboardType.string.rawValue] {
-                    text = String(decoding: data, as: UTF8.self)
+                if let data = first[NSPasteboard.PasteboardType.string.rawValue],
+                   let decoded = String(data: data, encoding: .utf8) {
+                    text = decoded
                 }
             }
         }

@@ -228,8 +228,11 @@ struct HistorySplitView: View {
         Menu("Pinboards") {
             ForEach(store.history.boards) { board in
                 Button { store.toggle(clip, on: board) } label: {
-                    if clip.boards.contains(board.id) { Label(board.name, systemImage: "checkmark") }
-                    else { Text(board.name) }
+                    if clip.boards.contains(board.id) {
+                        Label(board.name, systemImage: "checkmark")
+                    } else {
+                        Text(board.name)
+                    }
                 }
             }
         }

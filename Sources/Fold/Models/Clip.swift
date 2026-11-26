@@ -25,7 +25,7 @@ struct Clip: Identifiable, Codable {
     var storageID: UUID { payloadID ?? id }
     var date: Date
     var source: String
-    var sourceBundleID: String? = nil
+    var sourceBundleID: String?
     let kind: ClipKind
     let preview: String
     let detail: String

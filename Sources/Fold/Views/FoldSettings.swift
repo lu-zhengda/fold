@@ -27,8 +27,11 @@ final class FoldSettings: ObservableObject {
     func setStartAtLogin(_ enabled: Bool) {
         loginError = nil
         do {
-            if enabled { try SMAppService.mainApp.register() }
-            else { try SMAppService.mainApp.unregister() }
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
         } catch { loginError = error.localizedDescription }
         refreshLoginStatus()
     }

@@ -273,9 +273,13 @@ final class FoldDelegate: NSObject, NSApplicationDelegate {
         case kVK_Space where !editing:
             store.previewID = store.selected?.id
         case kVK_Escape:
-            if !store.query.isEmpty { store.query = "" }
-            else if editing { panel.makeFirstResponder(nil) }
-            else { hide() }
+            if !store.query.isEmpty {
+                store.query = ""
+            } else if editing {
+                panel.makeFirstResponder(nil)
+            } else {
+                hide()
+            }
         case kVK_UpArrow: store.move(-1)
         case kVK_LeftArrow where !editing: store.move(-1)
         case kVK_DownArrow: store.move(1)

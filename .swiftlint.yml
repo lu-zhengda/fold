@@ -17,8 +17,11 @@ disabled_rules:
   - type_body_length
   - cyclomatic_complexity
   - identifier_name
+  - implicit_optional_initialization
   - line_length
   - nesting
+  - optional_data_string_conversion
+  - statement_position
   - trailing_comma
   - trailing_whitespace
   - void_function_in_ternary
